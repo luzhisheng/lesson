@@ -21,6 +21,8 @@
 # sender：发送者
 # recipient:接收者
 # amount：金额
+# proof：工作量
+# previus_hash：最后一个hash
 
 from time import time
 import hashlib
