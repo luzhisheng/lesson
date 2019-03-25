@@ -69,3 +69,31 @@ class Blcokchain:
 	def last_block(self):
 		return self.chain[-1]
 
+	# 工作量證明
+	def proof_of_work(self, last_proof: int) -> int:
+		proof = 0
+		while self.valid_proof(last_proof, proof) is False:
+			proof += 1
+		print(proof)
+		return proof
+
+	# 工作量驗證
+	def valid_proof(self, last_proof, proof) -> bool:
+		guess = '{}{}'.format(last_proof, proof).encode()
+		guess_hash = hashlib.sha256(guess).hexdigest()
+		print(guess_hash)
+
+		if guess_hash[0:4] == "0000":
+			return True
+		else:
+			return False
+
+
+if __name__ == '__main__':
+	testpow = Blcokchain()
+	testpow.proof_of_work(100)
+
+
+
+
+
