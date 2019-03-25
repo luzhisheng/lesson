@@ -1,4 +1,3 @@
-
 # {
 # 	"index":0,
 # 	"timestamp":"",
@@ -22,6 +21,8 @@
 # sender：发送者
 # recipient:接收者
 # amount：金额
+# proof：工作量
+# previus_hash：最后一个hash
 
 from time import time
 import hashlib
@@ -29,7 +30,6 @@ import json
 
 
 class Blcokchain:
-
 	def __init__(self):
 		self.chain = []
 		self.current_transactions = []
@@ -37,7 +37,7 @@ class Blcokchain:
 		# 创世纪区块
 		self.new_block(proof=100, previus_hash=1)
 
-	def new_block(self, proof, previus_hash = None):
+	def new_block(self, proof, previus_hash=None):
 		block = {
 			"index": len(self.chain) + 1,
 			"timestamp": time(),
@@ -52,9 +52,9 @@ class Blcokchain:
 	def new_transaction(self, sender, recipient, amount) -> int:
 		self.current_transactions.append(
 			{
-				"sender":sender,
-				"recipient":recipient,
-				"amount":amount
+				"sender": sender,
+				"recipient": recipient,
+				"amount": amount
 			}
 		)
 
@@ -92,8 +92,3 @@ class Blcokchain:
 if __name__ == '__main__':
 	testpow = Blcokchain()
 	testpow.proof_of_work(100)
-
-
-
-
-
