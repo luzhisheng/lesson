@@ -31,15 +31,23 @@ from flask import Flask
 from flask import jsonify
 from flask import request
 import uuid
+from urllib.parse import urlparse
 
 
 class Blcokchain:
     def __init__(self):
         self.chain = []
         self.current_transactions = []
+        self.nodes = set()
 
         # 创世纪区块
         self.new_block(proof=100, previus_hash=1)
+
+    # 注册节点
+    def register_node(self, address: str):
+        # http://127.0.0.1:5001/
+        parsed_url = urlparse(address)
+        self.nodes.add(parsed_url.netloc)
 
     def new_block(self, proof, previus_hash=None):
         block = {
@@ -143,6 +151,12 @@ def full_chain():
         'length': len(blcokchain.chain)
     }
     return jsonify(respones), 200
+
+# 用户添加节点
+@app.route('/nodes/register', methods=['POST'])
+def register_nodes():
+    values = request.get_json()
+    nodes = values.get("nodes")
 
 
 # if __name__ == '__main__':
