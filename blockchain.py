@@ -28,6 +28,8 @@ from time import time
 import hashlib
 import json
 from flask import Flask
+from flask import jsonify
+from flask import request
 
 
 class Blcokchain:
@@ -66,6 +68,7 @@ class Blcokchain:
         block_string = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha256(block_string).hexdigest()
 
+    # 最后一个区块
     @property
     def last_block(self):
         return self.chain[-1]
@@ -91,7 +94,7 @@ class Blcokchain:
 
 
 app = Flask(__name__)
-
+blcokchain = Blcokchain()
 
 # http://127.0.0.1:5000/index
 @app.route('/index', methods=['GET'])
@@ -101,7 +104,16 @@ def index():
 
 @app.route('/transaction/new', methods=['POST'])
 def new_transaction():
-    return "we'll add a new transaction"
+    values = request.get_json()
+    required = ["sender", "recipient", "amount"]
+    if values is None:
+        return "missing vlaues", 400
+    if not all(k in values for k in required):
+        return "missing vlaues", 400
+
+    index = blcokchain.new_transaction(values['sender'], values['recipient'], values['amount'])
+    respones = {"message": "transaction will be added to block {}".format(index)}
+    return jsonify(respones), 201
 
 
 @app.route('/mine', methods=['GET'])
@@ -111,7 +123,11 @@ def mine():
 
 @app.route('/chain', methods=['GET'])
 def full_chain():
-    return 'full chain'
+    respones = {
+        'chain': blcokchain.chain,
+        'length': len(blcokchain.chain)
+    }
+    return jsonify(respones), 200
 
 
 # if __name__ == '__main__':
