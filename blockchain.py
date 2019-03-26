@@ -32,6 +32,7 @@ from flask import jsonify
 from flask import request
 import uuid
 from urllib.parse import urlparse
+import requests
 
 
 class Blcokchain:
@@ -48,6 +49,47 @@ class Blcokchain:
 		# http://127.0.0.1:5001/ -》 127.0.0.1:5001
 		parsed_url = urlparse(address)
 		self.nodes.add(parsed_url.netloc)
+
+	# 验证节点的有效性
+	def valid_chain(self, chain) -> bool:
+		last_block = chain[0]
+		current_index = 1
+		while current_index < len(chain):
+			blcok = chain[current_index]
+
+			if blcok['previus_hash'] != self.hash(last_block):
+				return False
+
+			if not self.valid_proof(last_block['proof'], blcok['proof']):
+				return False
+
+			last_block = blcok
+			current_index += 1
+
+	# 共识机制,解决冲突
+	def resolve_conflicts(self):
+
+		neighbours = self.nodes
+
+		max_length = len(self.chain)
+		new_chain = None
+
+		for node in neighbours:
+			reponse = requests.get('http://{}/chain'.format(node))
+			if reponse.status_code == 200:
+				length = reponse.json()['length']
+				chain = reponse.json()['chain']
+
+				if length > max_length and self.valid_chain(chain):
+					max_length = length
+					new_chain = chain
+
+		if new_chain:
+			self.chain = new_chain
+			return True
+
+		return False
+
 
 	def new_block(self, proof, previus_hash=None):
 		block = {
@@ -159,7 +201,6 @@ def full_chain():
 @app.route('/nodes/register', methods=['POST'])
 def register_nodes():
 	values = request.get_json()
-	print(values)
 	nodes = values.get("nodes")
 
 	if nodes is None:
