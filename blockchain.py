@@ -27,6 +27,7 @@
 from time import time
 import hashlib
 import json
+from flask import Flask
 
 
 class Blcokchain:
@@ -89,6 +90,34 @@ class Blcokchain:
             return False
 
 
+app = Flask(__name__)
+
+
+# http://127.0.0.1:5000/index
+@app.route('/index', methods=['GET'])
+def index():
+    return "hello blockchain"
+
+
+@app.route('/transaction/new', methods=['POST'])
+def new_transaction():
+    return "we'll add a new transaction"
+
+
+@app.route('/mine', methods=['GET'])
+def mine():
+    return "we'll add a new BLOCK"
+
+
+@app.route('/chain', methods=['GET'])
+def full_chain():
+    return 'full chain'
+
+
+# if __name__ == '__main__':
+#     testpow = Blcokchain()
+#     testpow.proof_of_work(100)
+
+
 if __name__ == '__main__':
-    testpow = Blcokchain()
-    testpow.proof_of_work(100)
+    app.run(host='0.0.0.0', port=5000)
