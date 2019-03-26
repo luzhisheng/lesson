@@ -30,6 +30,7 @@ import json
 from flask import Flask
 from flask import jsonify
 from flask import request
+import uuid
 
 
 class Blcokchain:
@@ -51,6 +52,7 @@ class Blcokchain:
 
         self.current_transactions = []
         self.chain.append(block)
+        return block
 
     def new_transaction(self, sender, recipient, amount) -> int:
         self.current_transactions.append(
@@ -78,7 +80,7 @@ class Blcokchain:
         proof = 0
         while self.valid_proof(last_proof, proof) is False:
             proof += 1
-        print(proof)
+        # print(proof)
         return proof
 
     # 工作量驗證
@@ -95,6 +97,7 @@ class Blcokchain:
 
 app = Flask(__name__)
 blcokchain = Blcokchain()
+node_id = str(uuid.uuid4()).replace('-', '')
 
 # http://127.0.0.1:5000/index
 @app.route('/index', methods=['GET'])
@@ -118,7 +121,19 @@ def new_transaction():
 
 @app.route('/mine', methods=['GET'])
 def mine():
-    return "we'll add a new BLOCK"
+    last_block = blcokchain.last_block
+    last_block_proof = last_block['proof']
+    proof = blcokchain.proof_of_work(last_block_proof)
+    blcokchain.new_transaction(sender="0", recipient=node_id, amount=1)
+    blcok = blcokchain.new_block(proof, None)
+    respones = {
+        "message": "new block forged",
+        "index": blcok['index'],
+        "transaction": blcok['transactions'],
+        "proof": blcok['proof'],
+        "previus_hash": blcok['previus_hash']
+    }
+    return jsonify(respones), 200
 
 
 @app.route('/chain', methods=['GET'])
