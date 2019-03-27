@@ -33,6 +33,7 @@ from flask import request
 import uuid
 from urllib.parse import urlparse
 import requests
+from argparse import ArgumentParser
 
 
 class Blcokchain:
@@ -70,11 +71,13 @@ class Blcokchain:
     def resolve_conflicts(self):
 
         neighbours = self.nodes
+        print(neighbours)
 
         max_length = len(self.chain)
         new_chain = None
 
         for node in neighbours:
+            print(node)
             reponse = requests.get('http://{}/chain'.format(node))
             if reponse.status_code == 200:
                 length = reponse.json()['length']
@@ -157,7 +160,7 @@ def index():
 
 @app.route('/transaction/new', methods=['POST'])
 def new_transaction():
-    values = request.get_json()
+    values = request.get_json(force=True)
     required = ["sender", "recipient", "amount"]
     if values is None:
         return "missing vlaues", 400
@@ -199,7 +202,7 @@ def full_chain():
 # 用户注冊节点
 @app.route('/nodes/register', methods=['POST'])
 def register_nodes():
-    values = request.get_json()
+    values = request.get_json(force=True)
     nodes = values.get("nodes")
 
     if nodes is None:
@@ -216,10 +219,34 @@ def register_nodes():
     return jsonify(respones), 201
 
 
+# 调用解决冲突
+@app.route('/nodes/resolve', methods=['GET'])
+def consensus():
+    replaced = blcokchain.resolve_conflicts()
+
+    if replaced:
+        respones = {
+            'message': "our chain was replacd",
+            "new_chain": blcokchain.chain
+        }
+    else:
+        respones = {
+            'message': "our chain was authoritative",
+            "chain": blcokchain.chain
+        }
+
+    return jsonify(respones), 200
+
+
 # if __name__ == '__main__':
 #     testpow = Blcokchain()
 #     testpow.proof_of_work(100)
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    parser = ArgumentParser()
+    # -p --port 5001
+    parser.add_argument('-p', '--port', default=5001, type=int, help='port to listen to')
+    args = parser.parse_args()
+    port = args.port
+    app.run(host='0.0.0.0', port=port)
