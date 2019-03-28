@@ -67,17 +67,17 @@ class Blcokchain:
             last_block = blcok
             current_index += 1
 
+        return True
+
     # 共识机制,解决冲突
     def resolve_conflicts(self):
 
         neighbours = self.nodes
-        print(neighbours)
 
         max_length = len(self.chain)
         new_chain = None
 
         for node in neighbours:
-            print(node)
             reponse = requests.get('http://{}/chain'.format(node))
             if reponse.status_code == 200:
                 length = reponse.json()['length']
